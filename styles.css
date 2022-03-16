@@ -1,0 +1,56 @@
+#pageTop {
+    background: #E5E5E5;
+}
+
+#rectangle-1 {
+    background: #FFFFFF;
+}
+
+#title {
+    position: relative;
+    width: 344px;
+    height: 62px;
+
+    font-family: 'Rochester';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 48px;
+    line-height: 62px;
+    
+    color: #000000;
+}
+
+.linebar {
+    border: 1px solid #000000;
+}
+
+#burg {
+    position: absolute;
+    width: 1440px;
+    height: 344px;
+
+    background: url(media/burg.png);
+}
+
+#rectangle-2 {
+    background: #333A40;
+}
+
+#footer {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 700;
+    font-size: 12px;
+    line-height: 14px;
+    text-align: center;
+
+    color: #000000;
+}
+
+.roboto {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 700;
+    font-size: 30px;
+    line-height: 35px;
+}
