@@ -1,3 +1,12 @@
+/**
+ * --------------------------------------------------
+ * 
+ *                    Constantes
+ * 
+ * --------------------------------------------------
+ */
+
+//Constantes de Ubicacion
 const productList = document.querySelector('.product-list');
 const productListOuter = document.querySelector('.product-list-outer');
 const categoryName = document.querySelector('.product-category');
@@ -6,10 +15,21 @@ const cartCount = document.querySelector('.cart-count');
 const cart = document.querySelector('.shopping-cart');
 const modal = document.querySelector('.modal');
 
+//Constantes del Carrito
 let cartItemID = 1;
+let qtytotal = 0;
 
-
+//Hacer que todo corra
 eventListeners();
+updateMiniCartInfo();
+
+/**
+ * --------------------------------------------------
+ * 
+ *                    EventListeners
+ * 
+ * --------------------------------------------------
+ */
 
 function eventListeners(){
     window.addEventListener('DOMContentLoaded', () => {
@@ -18,37 +38,46 @@ function eventListeners(){
         loadCart();
     })
 
+    //Agregar a Carrito
     productList.addEventListener('click', purchaseProduct);
 
+    //Confirmar Pedido
     productListOuter.addEventListener('click', confirmOrder);
 
+    //Cambiar categoria
     categories.addEventListener('click', changeJSON);
 
+    //Cargar informacion del carrito
     cart.addEventListener('click', loadCartContent);
 
+    //Cancelar Pedido
     modal.addEventListener('click', cancelOrder)
 }
 
-function updateMiniCartInfo(){
-    let products = getProductFromLocalStorage();
-    let count = products.length;
-    count += ' items';
-    cartCount.textContent = count;
-}
+/**
+ * --------------------------------------------------
+ * 
+ *                   JSON y ProductDisplay
+ * 
+ * --------------------------------------------------
+ */
 
-updateMiniCartInfo();
-
+//Cargar el JSON
 function loadJSON(active){
     fetch('https://gist.githubusercontent.com/josejbocanegra/9a28c356416badb8f9173daf36d1460b/raw/5ea84b9d43ff494fcbf5c5186544a18b42812f09/restaurant.json')
     .then(response => response.json())
     .then(data => {
 
         //console.log(active.textContent);
+        
+        //Filtrar por categoria - notar que Burguer es la active por default
         const filtered = data.find(c => c.name === active.textContent);
+
         //console.log(filtered);
 
         categoryName.innerHTML = filtered.name;
 
+        //Crear uno por uno los cards con los productos
         let html = '';
         filtered.products.forEach(product => {
             //console.log(product);
@@ -90,12 +119,22 @@ function loadJSON(active){
     })
 }
 
+//Cambiar de Categoria
 function changeJSON(e) {
     if(e.target.classList.contains('nav-link')){
         loadJSON(e.target)
     }
 }
 
+/**
+ * --------------------------------------------------
+ * 
+ *               Comprar Productos
+ * 
+ * --------------------------------------------------
+ */
+
+//Comprar Producto o Modificar su cantidad
 function purchaseProduct(e) {
     //console.log(e.target);
     if(e.target.classList.contains('btn-purchase')){
@@ -112,20 +151,7 @@ function purchaseProduct(e) {
     }
 }
 
-function confirmOrder(e) {
-    if(e.target.classList.contains('btn-confirm')){
-        let products = getProductFromLocalStorage();
-        console.log({products});
-    }
-}
-
-function cancelOrder(e) {
-    if(e.target.classList.contains('btn-cancel-order')){
-        localStorage.setItem('products', JSON.stringify([]));
-        loadCartContent();
-    }
-}
-
+//Crear el JSON de la informacion del producto para el pedido
 function getProductInfo(product){
     let productInfo = {
         id: cartItemID,
@@ -134,23 +160,20 @@ function getProductInfo(product){
         price: product.querySelector('.product-price').textContent
     }
     cartItemID++;
+    qtytotal++;
     //console.log(productInfo);
     saveProductInLocalStorage(productInfo);
 }
 
-function changeProductInLocalStorage(item, val) {
-    let products = getProductFromLocalStorage();
-    let nam = item.querySelector('.product-name-small').textContent;
+/**
+ * --------------------------------------------------
+ * 
+ *               Local Storage
+ * 
+ * --------------------------------------------------
+ */
 
-    if(products.find(p => p.name === nam)){
-        product = products.find(p => p.name === nam);
-        product.qty += val;
-        cartItemID--;
-    }
-    localStorage.setItem('products', JSON.stringify(products));
-    loadCartContent();
-}
-
+//Guardar el producto en local storage
 function saveProductInLocalStorage(item) {
     let products = getProductFromLocalStorage();
 
@@ -166,22 +189,76 @@ function saveProductInLocalStorage(item) {
     updateMiniCartInfo();
 }
 
+//Cambiar Producto en Local Storage
+function changeProductInLocalStorage(item, val) {
+    let products = getProductFromLocalStorage();
+    let nam = item.querySelector('.product-name-small').textContent;
+
+    if(products.find(p => p.name === nam)){
+        product = products.find(p => p.name === nam);
+        product.qty += val;
+        cartItemID--;
+    }
+    localStorage.setItem('products', JSON.stringify(products));
+    loadCartContent();
+}
+
+//Cargar lista de productos de Local Storage
 function getProductFromLocalStorage() {
     return localStorage.getItem('products') ? JSON.parse(localStorage.getItem('products')) : [];
 }
 
+/**
+ * --------------------------------------------------
+ * 
+ *            Confirmar/Cancelar Pedido
+ * 
+ * --------------------------------------------------
+ */
+
+function confirmOrder(e) {
+    if(e.target.classList.contains('btn-confirm')){
+        let products = getProductFromLocalStorage();
+        console.log({products});
+    }
+}
+
+function cancelOrder(e) {
+    if(e.target.classList.contains('btn-cancel-order')){
+        localStorage.setItem('products', JSON.stringify([]));
+        loadCartContent();
+        qtytotal = 0;
+        updateMiniCartInfo();
+    }
+}
+
+/**
+ * --------------------------------------------------
+ * 
+ *               Funciones del Carrito
+ * 
+ * --------------------------------------------------
+ */
+
+//Carga inicial de carrito persistente
 function loadCart() {
     let products = getProductFromLocalStorage();
     if(products.length < 1){
         cartItemID = 1;
+        qtytotal = 0;
     }
     else {
         cartItemID = products[products.length - 1].id;
         cartItemID++;
+
+        qtytotal = products.reduce((acc, product) => {
+            return acc += product.qty;
+        }, 0);
     }
     //console.log(cartItemID);
 }
 
+//Desplegar la informacion del carrito
 function loadCartContent() {
     let products = getProductFromLocalStorage();
 
@@ -191,12 +268,12 @@ function loadCartContent() {
     var thead = document.createElement("thead");
     thead.innerHTML = `
                     <tr>
-                        <th scope="col">Item</th>
-                        <th scope="col">Qty.</th>
-                        <th scope="col">Description</th>
-                        <th scope="col">Unit Price</th>
-                        <th scope="col">Amount</th>
-                        <th scope="col">Modify</th>
+                        <th class="d-none d-sm-block" scope="col">Item</th>
+                        <th class="d-none d-sm-block" scope="col">Qty.</th>
+                        <th class="d-none d-sm-block" scope="col">Description</th>
+                        <th class="d-none d-sm-block" scope="col">Unit Price</th>
+                        <th class="d-none d-sm-block" scope="col">Amount</th>
+                        <th class="d-none d-sm-block" scope="col">Modify</th>
                     </tr>
                     `;
     table.appendChild(thead);
@@ -207,11 +284,11 @@ function loadCartContent() {
         var amt = (Math.round(parseFloat(product.qty*product.price.substr(1)) * 100) / 100).toFixed(2);
         thtml +=`
                 <tr>
-                    <td>${product.id}</td>
+                    <td class="d-none d-sm-block">${product.id}</td>
                     <td>${product.qty}</td>
                     <td class="product-name-small">${product.name}</td>
-                    <td>${product.price}</td>
-                    <td>$${amt}</td>
+                    <td class="d-none d-sm-block">${product.price}</td>
+                    <td class="d-none d-sm-block">$${amt}</td>
                     <td>
                         <button type="button" class="btn btn-add btn-warning">+</button>
                         <button type="button" class="btn btn-subtract btn-warning">-</button>
@@ -226,13 +303,13 @@ function loadCartContent() {
     var orderFinal = document.createElement("div");
     orderFinal.classList.add("row");
     orderFinal.innerHTML = `
-                            <div class="col-8">
+                            <div class="col-12 col-md-8">
                                 <p class="total-cart">Total: $0.00</p>
                             </div>
-                            <div class="col-2">
+                            <div class="col-6 col-md-2">
                                 <button type="button" class="btn btn-cancel btn-danger" data-toggle="modal" data-target="#cancelModal">Cancel</button>
                             </div>
-                            <div class="col-2">
+                            <div class="col-6 col-md-2">
                                 <button type="button" class="btn btn-confirm btn-success">Confirm Order</button>
                             </div>
                             `; 
@@ -249,6 +326,14 @@ function loadCartContent() {
     updateCartInfo(products);
 }
 
+//Actualizar carrito en la pagina principal
+function updateMiniCartInfo(){
+    let count = qtytotal;
+    count += ' items';
+    cartCount.textContent = count;
+}
+
+//Actualizar carrito en su propia pagina
 function updateCartInfo(products) {
     let total = products.reduce((acc, product) => {
         let price = parseFloat(product.price.substr(1));

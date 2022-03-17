@@ -32,10 +32,6 @@
     background: url(media/burg.png);
 }
 
-#rectangle-2 {
-    background: #333A40;
-}
-
 #footer {
     font-family: 'Roboto';
     font-style: normal;
@@ -53,4 +49,8 @@
     font-weight: 700;
     font-size: 30px;
     line-height: 35px;
+}
+
+.product-image {
+    margin-top: 1em;
 }
